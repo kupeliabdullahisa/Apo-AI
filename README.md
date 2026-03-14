@@ -1,0 +1,2 @@
+# Apo-AI
+Yapay zeka 
