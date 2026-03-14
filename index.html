@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Apo AI Chat Diamond</title>
+<style>
+  body { margin:0; font-family:'Segoe UI',sans-serif; overflow:hidden; background:black; }
+  canvas { position:absolute; top:0; left:0; width:100%; height:100%; z-index:0; }
+  #container { position:relative; z-index:1; display:flex; flex-direction:column; height:100vh; justify-content:center; align-items:center; }
+  #chat { width:550px; max-height:500px; overflow-y:auto; background: rgba(0,0,0,0.85); border-radius:20px; padding:15px; display:flex; flex-direction:column; }
+  .message { max-width:75%; margin:4px 0; padding:10px 14px; border-radius:15px; opacity:0; transform:translateY(10px); animation:fadeIn 0.3s forwards; word-wrap:break-word; }
+  .user { background:#00d4ff; color:black; align-self:flex-end; text-align:right; }
+  .bot { background:#111; color:white; border:1px solid #444; align-self:flex-start; text-align:left; }
+  @keyframes fadeIn{ to {opacity:1; transform:translateY(0);} }
+  #inputArea { display:flex; width:550px; margin-top:10px; }
+  #mesaj { flex:1; padding:12px 15px; border-radius:25px; border:none; outline:none; }
+  button { padding:12px 18px; margin-left:5px; border:none; border-radius:25px; background:#00d4ff; color:black; cursor:pointer; font-weight:bold; }
+  .typing { font-style:italic; opacity:0.7; margin-left:5px; }
+  h2 { color:white; text-align:center; }
+</style>
+</head>
+<body>
+<canvas id="bg"></canvas>
+<div id="container">
+  <h2>Apo AI Chat Diamond</h2>
+  <div id="chat"></div>
+  <div id="inputArea">
+    <input id="mesaj" placeholder="Bir şey yaz" onkeypress="if(event.key==='Enter'){cevap();}">
+    <button onclick="cevap()">Gönder</button>
+  </div>
+</div>
+
+<script>
+// --- Diamond particles ---
+const canvas = document.getElementById('bg');
+const ctx = canvas.getContext('2d');
+let w=canvas.width=window.innerWidth;
+let h=canvas.height=window.innerHeight;
+
+let particles=[];
+for(let i=0;i<200;i++){
+  particles.push({
+    x:Math.random()*w,
+    y:Math.random()*h,
+    r: Math.random()*2+1,
+    dx:(Math.random()-0.5)*0.5,
+    dy:(Math.random()-0.5)*0.5
+  });
+}
+
+function animate(){
+  ctx.clearRect(0,0,w,h);
+  for(let p of particles){
+    ctx.beginPath();
+    ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+    ctx.fillStyle="white";
+    ctx.fill();
+    p.x+=p.dx; p.y+=p.dy;
+    if(p.x<0)p.x=w; if(p.x>w)p.x=0;
+    if(p.y<0)p.y=h; if(p.y>h)p.y=0;
+  }
+  requestAnimationFrame(animate);
+}
+animate();
+window.addEventListener('resize',()=>{ w=canvas.width=window.innerWidth; h=canvas.height=window.innerHeight; });
+
+// --- Cevap sistemi ---
+const cevaplar = {
+  selam:["Merhaba knk! Nasılsın?","Selam knk 😄","Hey knk!"],
+  naber:["İyiyim knk, sen nasılsın?","Her şey yolunda knk 😎","Senden haber bekliyordum knk"],
+  isim:["Ben ApoBot knk 😄","Apo AI burada knk","Sana sohbet arkadaşıyım knk"],
+  iyi:["İyi geceler knk, tatlı rüyalar!","Hayırlı geceler knk 😴","Güzel uykular knk"],
+  tesekkur:["Rica ederim knk 🙂","Her zaman knk","Ne demek knk 😄"],
+  nasilsin:["Ben iyiyim knk, sen nasılsın?","Gayet iyiyim knk 😎","Sen nasılsın knk?"],
+  hava:["Bilmiyorum knk, pencereden bak 😎","Hava durumuna bak knk","Dışarıya göz at knk"],
+  saka:["Bilgisayarlar neden futbol oynayamaz? Çünkü çok fazla byte alırlar 😆",
+        "Neden matematik kitabı üzgündü? Çünkü çok problemi vardı 😅",
+        "İki atom bara girmiş, biri diğerine 'electron kaybettim' demiş 😂"],
+  oyun:["Oyun oynayamam knk 😅","Ama tavsiye verebilirim 🎮","Sana oyun öneririm knk"],
+  genel:["Bunu anlamadım knk 😅","Bir daha dener misin knk?","Hmm, bunu çözemedim 😎"]
+};
+
+function cevap(){
+  let mesaj=document.getElementById("mesaj").value.trim();
+  if(mesaj==="") return;
+  let chat=document.getElementById("chat");
+
+  // Kullanıcı mesajı
+  let userDiv=document.createElement("div");
+  userDiv.className="message user";
+  userDiv.innerText=mesaj;
+  chat.appendChild(userDiv);
+  chat.scrollTop=chat.scrollHeight;
+  document.getElementById("mesaj").value="";
+
+  // Typing göstergesi
+  let typingDiv=document.createElement("div");
+  typingDiv.className="message bot typing";
+  typingDiv.innerText="Bot yazıyor...";
+  chat.appendChild(typingDiv);
+  chat.scrollTop=chat.scrollHeight;
+
+  // Gecikmeli cevap
+  setTimeout(()=>{
+    chat.removeChild(typingDiv);
+    let botDiv=document.createElement("div");
+    botDiv.className="message bot";
+    let text=mesaj.toLowerCase();
+
+    if(text.includes("merhaba")||text.includes("selam")||text.includes("selamünaleyküm")) botDiv.innerText=cevaplar.selam.random();
+    else if(text.includes("naber")||text.includes("ne yapıyorsun")||text.includes("napıyorsun")) botDiv.innerText=cevaplar.naber.random();
+    else if(text.includes("adın")||text.includes("kim")||text.includes("sen kimsin")) botDiv.innerText=cevaplar.isim.random();
+    else if(text.includes("iyi geceler")||text.includes("iyi akşam")||text.includes("iyi sabah")) botDiv.innerText=cevaplar.iyi.random();
+    else if(text.includes("teşekkür")||text.includes("sağol")||text.includes("thanks")) botDiv.innerText=cevaplar.tesekkur.random();
+    else if(text.includes("nasılsın")||text.includes("keyfin")||text.includes("moral")) botDiv.innerText=cevaplar.nasilsin.random();
+    else if(text.includes("hava")||text.includes("dışarısı")) botDiv.innerText=cevaplar.hava.random();
+    else if(text.includes("şaka")||text.includes("espri")) botDiv.innerText=cevaplar.saka.random();
+    else if(text.includes("oyun")) botDiv.innerText=cevaplar.oyun.random();
+    else botDiv.innerText=cevaplar.genel.random();
+
+    chat.appendChild(botDiv);
+    chat.scrollTop=chat.scrollHeight;
+  }, 800 + Math.random()*700);
+}
+
+Array.prototype.random=function(){return this[Math.floor(Math.random()*this.length)];}
+</script>
+
+</body>
+</html># Apo-AI
+Yapay zeka 
